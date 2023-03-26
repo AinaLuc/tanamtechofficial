@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Order Forms</title>
+	<style>
+		body {
+  background-color: #fff;
+  color: #000;
+}
+
+#order-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+input[type="email"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin-right: 10px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button[type="submit"] {
+  background-color: #ff0000;
+}
+
+#company-name-result {
+  margin-top: 10px;
+}
+
+#step-1-next,
+#step-2-prev,
+#step-2-next,
+#step-3-prev {
+  display: inline-block;
+  margin-top: 20px;
+}
+
+#order-summary-company-name,
+#order-summary-email {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+	</style>
+</head>
+<body>
+	<form id="order-form">
+  <div id="step-1">
+    <label for="company-name">Company Name:</label>
+    <input type="text" id="company-name" name="company-name" required>
+    <p id="company-name-result"></p>
+    <button id="step-1-next" type="button">Next</button>
+  </div>
+  <div id="step-2" style="display: none;">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    <button id="step-2-prev" type="button">Previous</button>
+    <button id="step-2-next" type="button">Next</button>
+  </div>
+  <div id="step-3" style="display: none;">
+    <h2>Order Summary</h2>
+    <p>Company Name: <span id="order-summary-company-name"></span></p>
+    <p>Email: <span id="order-summary-email"></span></p>
+    <button id="step-3-prev" type="button">Previous</button>
+    <button type="submit">Submit</button>
+  </div>
+</form>
+	<script>
+	const wyomingUrl = 'https://wyobiz.wy.gov/Business/FilingSearch.aspx?cn=';
+const delawareUrl = 'https://icis.corp.delaware.gov/Ecorp/EntitySearch/NameSearch.aspx';
+const companyNameInput = document.getElementById('company-name');
+const companyNameResult = document.getElementById('company-name-result');
+const step1NextButton = document.getElementById('step-1-next');
+const step2PrevButton = document.getElementById('step-2-prev');
+const step2NextButton = document.getElementById('step-2-next');
+const step3PrevButton = document.getElementById('step-3-prev');
+const orderSummaryCompanyName = document.getElementById('order-summary-company-name');
+const orderSummaryEmail = document.getElementById('order-summary-email');
+
+function searchWyoming(companyName) {
+  const url = `https://wyobiz.wy.gov/Business/FilingSearch.aspx?cn=${encodeURIComponent(companyName)}`;
+
+  // Create a new script element and append it to the document body
+  const script = document.createElement('script');
+  script.src = `${url}&callback=handleSearchResponse`;
+  document.body.appendChild(script);
+
+  // Define a callback function to handle the JSONP response
+  window.handleSearchResponse = function(data) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data, 'text/html');
+    const result = doc.querySelector('#ctl00_ContentPlaceHolder1_lblSearchResults');
+    companyNameResult.textContent = result ? 'Company exists in Wyoming' : 'Company does not exist';
+
+    // Remove the script element from the document body
+    document.body.removeChild(script);
+
+    // Remove the callback function from the global namespace
+    delete window.handleSearchResponse;
+  };
+}
+
+function searchDelaware(companyName) {
+  const url = `https://icis.corp.delaware.gov/Ecorp/EntitySearch/NameSearch.aspx?NameType=Contains&SearchTerm=${encodeURIComponent(companyName)}`;
+ 
+  // Create a new script element and append it to the document body
+  const script = document.createElement('script');
+  script.src = `${url}&callback=handleSearchResponse`;
+  document.body.appendChild(script);
+
+  // Define a callback function to handle the JSONP response
+  window.handleSearchResponse = function(data) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data, 'text/html');
+    const result = doc.querySelector('#ctl00_ctl00_Content_Menu_lblNotice');
+    companyNameResult.textContent = result ? 'Company exists in Delaware' : 'Company does not exist';
+
+    // Remove the script element from the document body
+    document.body.removeChild(script);
+
+    // Remove the callback function from the global namespace
+    delete window.handleSearchResponse;
+  };
+}
+
+companyNameInput.addEventListener('change', event => {
+  const companyName = event.target.value;
+  if (companyName) {
+    searchWyoming(companyName);
+    searchDelaware(companyName);
+  }
+});
+
+step1NextButton.addEventListener('click', event => {
+  event.preventDefault();
+  if (companyNameInput.checkValidity()) {
+    orderSummaryCompanyName.textContent = companyNameInput.value;
+    document.getElementById('step-1').style.display = 'none';
+    document.getElementById('step-2').style.display = 'block';
+  }
+});
+
+step2PrevButton.addEventListener('click', event => {
+  event.preventDefault();
+  document.getElementById('step-2').style.display = 'none';
+  document.getElementById('step-1').style.display = 'block';
+});
+
+step2NextButton.addEventListener('click', event => {
+  event.preventDefault();
+  if (document.getElementById('email').checkValidity()) {
+    orderSummaryEmail.textContent = document.getElementById('email').value;
+    document.getElementById('step-2').style.display = 'none';
+    document.getElementById('step-3').style.display = 'block';
+  }
+});
+
+step3PrevButton.addEventListener('click', event => {
+  event.preventDefault();
+  document.getElementById('step-3').style.display = 'none';
+  document.getElementById('step-2').style.display = 'block';
+});
+
+document.getElementById('order-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const formData = new FormData(event.target);
+  console.log(formData);
+  // Replace console.log with your own logic to submit the form data
+});
+
+</script>
