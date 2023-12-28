@@ -200,7 +200,8 @@ body {
   #  Get Startet Button
   --------------------------------------------------------------*/
   .get-started-btn {
-    color: #fff;
+    background-color: #0d6efd;
+    color: #a53636;
     border-radius: 4px;
     padding: 7px 25px 8px 25px;
     white-space: nowrap;
